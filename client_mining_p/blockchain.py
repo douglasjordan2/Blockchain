@@ -141,11 +141,11 @@ def mine():
     #     response = {'message': 'Missing values'}
     #     return jsonify(response), 400
 
-    if data['proof'] is None:
+    if 'proof' not in data:
       response = {'message': 'proof missing'}
       return jsonify(response), 400
 
-    if data['id'] is None:
+    if 'id' not in data:
       response = {'message': 'ID missing'}
       return jsonify(response), 400
     

@@ -6,10 +6,7 @@ import json
 import time
 import math
 
-def last_block(self):
-    return self.chain[-1]
-
-def proof_of_work(block):
+def proof_of_work(last_block):
     """
     Simple Proof of Work Algorithm
     Stringify the block and look for a proof.
@@ -17,10 +14,10 @@ def proof_of_work(block):
     in an effort to find a number that is a valid proof
     :return: A valid proof for the provided block
     """
-    block_string = json.dumps(block)
+    string_object = json.dumps(last_block, sort_keys=True)
 
     proof = 0
-    while valid_proof(block_string, proof) is False:
+    while valid_proof(string_object, proof) is False:
         proof += 1
     
     return proof
@@ -54,7 +51,8 @@ if __name__ == '__main__':
     id = f.read()
     print("ID is", id)
     f.close()
-    coins = 0
+
+    coins_mined = 0
 
     # Run forever until interrupted
     while True:
@@ -72,23 +70,28 @@ if __name__ == '__main__':
         start_time = time.time()
 
         # TODO: Get the block from `data` and use it to look for a new proof
-        # new_proof = ???
-        last_block = data['last_block']
-        new_proof = proof_of_work(last_block)
+        new_proof = proof_of_work(data.get('last_block'))
 
         # When found, POST it to the server {"proof": new_proof, "id": id}
         post_data = {"proof": new_proof, "id": id}
 
         r = requests.post(url=node + "/mine", json=post_data)
-        data = r.json()
+
+        try:
+            data = r.json()
+        except ValueError:
+            print("Error:  Non-json response")
+            print("Response returned:")
+            print(r)
+            break
 
         # TODO: If the server responds with a 'message' 'New Block Forged'
-        # add 1 to the number of coins mined and print it.  Otherwise,
-        # print the message from the server.
         if data['message'] == 'New Block Forged':
+        # add 1 to the number of coins mined and print it.  Otherwise,
             end_time = time.time()
-            coins += 1
+            coins_mined += 1
             print(f'Coin found in {math.floor(end_time - start_time)} seconds')
-            print(f'Coins: {coins}')
+            print(f'Coins Mined: {coins_mined}')
         else:
+            # print the message from the server.
             print(data['message'])
